@@ -9,6 +9,7 @@ On a new Mac, with [Homebrew](https://brew.sh) installed:
 ```sh
 git clone <this-repo> ~/dev/dotforge
 cd ~/dev/dotforge
+brew trust oven-sh/bun   # one-time: Homebrew requires explicit trust for this tap
 ./install.sh
 ```
 

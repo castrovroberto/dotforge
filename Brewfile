@@ -24,10 +24,11 @@ brew "vim"
 # Runtimes / package managers
 # -----------------------------------------
 brew "pnpm"
+tap "oven-sh/bun"
 brew "oven-sh/bun/bun"
 
 # -----------------------------------------
 # Containers & orchestration
 # -----------------------------------------
-cask "docker"
+cask "docker-desktop"
 brew "kubernetes-cli"
