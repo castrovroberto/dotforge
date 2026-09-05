@@ -30,5 +30,4 @@ brew "oven-sh/bun/bun"
 # -----------------------------------------
 # Containers & orchestration
 # -----------------------------------------
-cask "docker-desktop"
 brew "kubernetes-cli"

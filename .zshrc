@@ -1,4 +1,15 @@
 # -----------------------------------------
+# Homebrew
+# -----------------------------------------
+
+if [[ -x /opt/homebrew/bin/brew ]]; then
+  eval "$(/opt/homebrew/bin/brew shellenv)"
+elif [[ -x /home/linuxbrew/.linuxbrew/bin/brew ]]; then
+  eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
+fi
+
+
+# -----------------------------------------
 # Environment
 # -----------------------------------------
 
@@ -10,7 +21,11 @@ export VISUAL="$EDITOR"
 # pnpm
 # -----------------------------------------
 
-export PNPM_HOME="$HOME/Library/pnpm"
+if [[ "$(uname -s)" == "Darwin" ]]; then
+  export PNPM_HOME="$HOME/Library/pnpm"
+else
+  export PNPM_HOME="$HOME/.local/share/pnpm"
+fi
 case ":$PATH:" in
   *":$PNPM_HOME/bin:"*) ;;
   *) export PATH="$PNPM_HOME/bin:$PATH" ;;
