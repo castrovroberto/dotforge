@@ -39,6 +39,18 @@ brew bundle --file=Brewfile.mac   # macOS only
 - `Brewfile` — cross-platform Homebrew formulae
 - `Brewfile.mac` — macOS-only casks (Docker Desktop, Nerd Font)
 
+## Known gotchas
+
+- **Stale `/etc/environment` `JAVA_HOME`:** this repo's `.zshrc` manages
+  `JAVA_HOME` via SDKMAN, but `/etc/environment` is system-wide and not
+  managed by dotforge. If a JDK was ever installed manually (e.g. via apt)
+  and later removed, a leftover `JAVA_HOME=` line there can point at a path
+  that no longer exists. Interactive shells won't notice (`.zshrc`'s export
+  wins), but non-login-shell contexts that only read `/etc/environment`
+  (IDEs, systemd services, cron) will pick up the stale value. Check with
+  `cat /etc/environment` and remove any `JAVA_HOME=` line by hand (`sudo`
+  required — not something `install.sh` touches).
+
 ## Machine-specific git identity
 
 `.gitconfig` doesn't contain `user.name`/`user.email` since it's shared across
