@@ -1,7 +1,7 @@
 # See `ghostty +show-config --default --docs` for the full list of options.
 
 font-family = JetBrainsMono Nerd Font
-font-size = 13
+font-size = 9
 
 theme = Catppuccin Mocha
 
@@ -15,10 +15,10 @@ mouse-hide-while-typing = true
 copy-on-select = clipboard
 confirm-close-surface = false
 
-background-opacity = 0.75
+background-opacity = 0.95
 background-blur = true
 
 background-image = /home/rob/dev/dotforge/ghostty/wallpaper.jpg
-background-image-opacity = 0.3
+background-image-opacity = 0.05
 background-image-fit = cover
 background-image-position = center
