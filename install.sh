@@ -3,6 +3,12 @@ set -euo pipefail
 
 DOTFORGE_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 OS="$(uname -s)"
+WARNINGS=()
+
+warn() {
+  echo "WARNING: $1" >&2
+  WARNINGS+=("$1")
+}
 
 link() {
   local src="$DOTFORGE_DIR/$1"
@@ -37,31 +43,71 @@ ensure_homebrew() {
 }
 
 ensure_nerd_font_linux() {
-  if fc-list 2>/dev/null | grep -qi "JetBrainsMono Nerd Font"; then
+  # Not grep -q: exiting early SIGPIPEs fc-list, which fails under pipefail.
+  if fc-list 2>/dev/null | grep -i "JetBrainsMono Nerd Font" >/dev/null; then
     return
   fi
 
   echo "Installing JetBrainsMono Nerd Font..."
   local font_dir="$HOME/.local/share/fonts/JetBrainsMonoNerdFont"
-  mkdir -p "$font_dir"
-  curl -fsSL -o /tmp/JetBrainsMono.zip \
-    "https://github.com/ryanoasis/nerd-fonts/releases/latest/download/JetBrainsMono.zip"
-  unzip -oq /tmp/JetBrainsMono.zip -d "$font_dir"
-  rm /tmp/JetBrainsMono.zip
-  fc-cache -f "$font_dir" >/dev/null
+  # Chained with && since set -e is off when called as `ensure_nerd_font_linux || ...`
+  mkdir -p "$font_dir" &&
+    curl -fsSL -o /tmp/JetBrainsMono.zip \
+      "https://github.com/ryanoasis/nerd-fonts/releases/latest/download/JetBrainsMono.zip" &&
+    unzip -oq /tmp/JetBrainsMono.zip -d "$font_dir" &&
+    rm /tmp/JetBrainsMono.zip &&
+    fc-cache -f "$font_dir" >/dev/null
 }
+
+# System packages need sudo, so only check for them and say what to run.
+check_linux_prereqs() {
+  local missing=()
+  command -v zsh >/dev/null 2>&1 || missing+=("zsh")
+  command -v cc >/dev/null 2>&1 || missing+=("build-essential")
+  command -v fc-cache >/dev/null 2>&1 || missing+=("fontconfig")
+
+  if [ ${#missing[@]} -gt 0 ]; then
+    warn "Missing system packages (bun needs a C compiler). Run: sudo apt install -y ${missing[*]}"
+  fi
+}
+
+# Manual git install from https://github.com/nvm-sh/nvm#manual-install, which
+# unlike nvm's install script doesn't append to shell profiles.
+ensure_nvm() {
+  local nvm_dir="$HOME/.nvm"
+  if [ -s "$nvm_dir/nvm.sh" ]; then
+    return
+  fi
+
+  echo "Installing nvm..."
+  git clone -q https://github.com/nvm-sh/nvm.git "$nvm_dir"
+  git -C "$nvm_dir" checkout -q \
+    "$(git -C "$nvm_dir" describe --abbrev=0 --tags --match "v[0-9]*" "$(git -C "$nvm_dir" rev-list --tags --max-count=1)")"
+}
+
+bundle() {
+  echo "Installing packages from $1..."
+  brew bundle --file="$DOTFORGE_DIR/$1" || warn "Some packages from $1 failed to install. Re-run: brew bundle --file=$DOTFORGE_DIR/$1"
+}
+
+if [ "$OS" = "Linux" ]; then
+  check_linux_prereqs
+fi
 
 ensure_homebrew
 
-echo "Installing packages from Brewfile..."
-brew bundle --file="$DOTFORGE_DIR/Brewfile"
+# Homebrew refuses to load formulae from untrusted third-party taps.
+brew trust --tap oven-sh/bun || warn "Could not trust the oven-sh/bun tap; bun may fail to install"
+
+bundle "Brewfile"
 
 if [ "$OS" = "Darwin" ]; then
-  echo "Installing macOS-only packages from Brewfile.mac..."
-  brew bundle --file="$DOTFORGE_DIR/Brewfile.mac"
+  bundle "Brewfile.mac"
 else
-  ensure_nerd_font_linux
+  ensure_nerd_font_linux || warn "Nerd Font install failed"
 fi
+
+ensure_nvm || warn "nvm install failed"
 
 echo "Linking dotfiles..."
 link ".zshrc" ".zshrc"
@@ -69,5 +115,11 @@ link ".aliases" ".aliases"
 link ".gitconfig" ".gitconfig"
 link "starship.toml" ".config/starship.toml"
 link "ghostty/config" ".config/ghostty/config"
+
+if [ ${#WARNINGS[@]} -gt 0 ]; then
+  echo
+  echo "Finished with warnings:"
+  printf '  - %s\n' "${WARNINGS[@]}"
+fi
 
 echo "Done. Restart your shell or run: source ~/.zshrc"

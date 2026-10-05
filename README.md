@@ -9,18 +9,29 @@ Homebrew/Linuxbrew).
 ```sh
 git clone <this-repo> ~/dev/dotforge
 cd ~/dev/dotforge
-brew trust oven-sh/bun   # one-time: Homebrew requires explicit trust for this tap
 ./install.sh
+```
+
+On a fresh Linux machine, first install the system packages Homebrew and zsh
+need (requires sudo, so `install.sh` only warns about them):
+
+```sh
+sudo apt install -y zsh build-essential fontconfig
 ```
 
 `install.sh` will:
 
 - Install Homebrew itself if it's missing (macOS: point you to https://brew.sh;
   Linux: install Linuxbrew automatically)
-- Install everything in `Brewfile`, plus `Brewfile.mac` casks on macOS
+- Trust the `oven-sh/bun` tap, then install everything in `Brewfile`, plus
+  `Brewfile.mac` casks on macOS
 - On Linux, install JetBrainsMono Nerd Font if no Nerd Font is already present
+- Install nvm into `~/.nvm` if it's missing
 - Symlink the dotfiles into `$HOME` (existing files are backed up with a
   `.bak` suffix)
+
+A failed package doesn't stop the run; the dotfiles are still linked and any
+problems are listed in a summary at the end.
 
 ## Manually reinstalling packages
 

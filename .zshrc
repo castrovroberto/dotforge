@@ -47,8 +47,11 @@ load-nvmrc() {
     nvm use default --silent
   fi
 }
-add-zsh-hook chpwd load-nvmrc
-load-nvmrc
+# Only hook in when nvm actually loaded, otherwise every cd errors.
+if (( $+functions[nvm_find_nvmrc] )); then
+  add-zsh-hook chpwd load-nvmrc
+  load-nvmrc
+fi
 
 
 # -----------------------------------------
