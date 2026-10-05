@@ -144,3 +144,4 @@ export SDKMAN_DIR="$HOME/.sdkman"
 
 export JAVA_HOME="$HOME/.sdkman/candidates/java/current"
 export PATH="$JAVA_HOME/bin:$PATH"
+export PATH="$HOME/.local/bin:$PATH"
